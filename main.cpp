@@ -13,14 +13,20 @@
 #include<stdlib.h>
 #include <string.h>
 #include <iostream>
+#include <vector>
+#include <unordered_map>
 using namespace std;
 
 #include <sys/time.h>
 
+struct flags {
+	bool o1 = false;
+	bool o2 = false;
+} optimizations;
+
 float tdiff(struct timeval *start, struct timeval *end) {
   return (end->tv_sec-start->tv_sec) + 1e-6*(end->tv_usec-start->tv_usec);
 }
-
 
 unsigned char* getColor(unsigned char a, unsigned char b, unsigned char c){
    unsigned char* r = (unsigned char*)malloc(sizeof(unsigned char)*3);
@@ -436,9 +442,15 @@ void setFrame(const char* animateFile, Autonoma* MAIN_DATA, int frame, int frame
    refresh(MAIN_DATA);
 }
 
-int main(int argc, const char** argv){
+const unordered_map<string, vector<const char*>> presets = {
+	{"pianoroom", {"./main.exe", "-i", "inputs/pianoroom.ray", "--ppm", "-o", "output/pianoroom.ppm", "-H", "500", "-W", "500"}},
+	{"globe", {"./main.exe", "-i", "inputs/globe.ray", "--ppm", "-a", "inputs/globe.animate", "--movie", "-F", "24"}},
+	{"sphere", {"./main.exe", "-i", "inputs/sphere.ray", "--ppm", "-a", "inputs/sphere.animate", "--movie", "-F", "24", "-W", "100", "-H", "100", "-o", "output/sphere.mp4"}},
+	{"elephant", {"./main.exe", "-i", "inputs/elephant.ray", "--ppm", "-a", "inputs/elephant.animate", "--movie", "-F", "24", "-W", "100", "-H", "100", "-o", "output/elephant.mp4"}}
+};
 
-   int frameLen = 1;
+float runTest(int argc, const char** argv) {
+	int frameLen = 1;
    const char* inFile = NULL;
    const char* animateFile = NULL;
    const char* outFile = NULL;
@@ -509,6 +521,22 @@ int main(int argc, const char** argv){
          png = true;
          continue;
       }
+		if (streq(argv[i], "oDefault")) {
+			continue;
+		}
+		if (streq(argv[i], "o1")) {
+			optimizations.o1 = true;
+			continue;
+		}
+		if (streq(argv[i], "o2")) {
+			optimizations.o2 = true;
+			continue;
+		}
+		if (streq(argv[i], "oAll")) {
+			optimizations.o1 = true;
+			optimizations.o2 = true;
+			continue;
+		}
       if (streq(argv[i], "--help")) {
          printf("Usage %s [-H <height>] [-W <width>] [-F <framecount>] [--movie] [--no-movie] [--png] [--ppm] [--help] [-o <outfile>] [-i <infile>]\n", argv[0]);
          return 0;
@@ -529,12 +557,14 @@ int main(int argc, const char** argv){
       }
    }
 
+	free(DATA);
+	DATA = (unsigned char*)malloc(W*H*3*sizeof(unsigned char));
    Autonoma* MAIN_DATA = createInputs(inFile);
    
    int frame;
    char command[200];
    
-  struct timeval start, end;
+   struct timeval start, end;
    gettimeofday(&start, NULL);
    for(frame = 0; frame<frameLen; frame++) {
       setFrame(animateFile, MAIN_DATA, frame, frameLen);      
@@ -554,7 +584,8 @@ int main(int argc, const char** argv){
    }
 
    gettimeofday(&end, NULL);
-   printf("Total time to create images=%0.6f seconds\n", tdiff(&start, &end));
+	float elapsed = tdiff(&start, &end);
+   printf("Total time to create images=%0.6f seconds\n", elapsed);
 
    if (frameLen > 1 && toMovie) {
       if (png) {
@@ -562,8 +593,57 @@ int main(int argc, const char** argv){
       } else {
          snprintf(command, sizeof(command), "ffmpeg -y -r 24 -i %s.tmp.%%07d.ppm -vcodec ffv1 %s.tmp.avi && ffmpeg -y -i %s.tmp.avi -c:v libx264 -preset veryslow -qp 0 -r 24 %s", outFile, outFile, outFile, outFile);         
       }
-      return system(command);
-   }   
+      int status = system(command);
+		if (status != 0) {
+			printf("ffmpeg error");
+			exit(1);
+		}
+   }
+	delete MAIN_DATA;
+   return elapsed;
+}
+
+void benchmark(const char* test, vector<const char*>& argv, int runs) {
+	float minTime = -1;
+	for (int i = 0; i < runs; i++) {
+		printf("--------------------------------------------------\n");
+		printf("Run %d of %d\n", i + 1, runs);
+		float elapsed = runTest(argv.size(), argv.data());
+		if (elapsed < minTime || minTime == -1) {
+			minTime = elapsed;
+		}
+	}
+	printf("--------------------------------------------------\n");
+	printf("Minimum time for %s out of %d runs: %0.6f seconds\n", test, runs, minTime);
+}
+
+// TODO: use tools like valgrind to check memory leaks
+int main(int argc, const char** argv){
+	if (argc == 4 && argv[1][0] != '-') {
+		const char* test = argv[1];
+		const char* optimization = argv[2];
+		int runs = atoi(argv[3]);
+
+		printf("Test: %s | Optimization: %s | Runs: %d\n", test, optimization, runs);
+
+		if (streq(test, "all")) {
+			for (const auto& [key, value] : presets) {
+				vector<const char*> argv = value;
+				argv.push_back(optimization);
+				benchmark(key.c_str(), argv, runs);
+			}
+		} else {
+			auto it = presets.find(test);
+			if (it != presets.end()) {
+				vector<const char*> argv = it->second;
+				argv.push_back(optimization);
+				benchmark(it->first.c_str(), argv, runs);
+			} else {
+				printf("Unknown preset");
+			}
+		}
+	} else {
+		runTest(argc, argv);
+	}
    return 0;
-   
 }

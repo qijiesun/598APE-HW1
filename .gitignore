@@ -1,0 +1,9 @@
+# Compilation
+*.exe
+*.obj
+
+# Outputs
+*.ppm
+*.png
+*.avi
+*.mp4

@@ -1,0 +1,11 @@
+#ifndef __FLAGS_H__
+#define __FLAGS_H__
+
+struct Flags {
+	bool o1 = false;
+	bool o2 = false;
+};
+
+extern Flags optimizations;
+
+#endif

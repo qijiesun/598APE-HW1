@@ -1,4 +1,5 @@
 //#include<printf.h>
+#include "src/flags.h"
 #include "src/vector.h"
 #include "src/shape.h"
 #include "src/sphere.h"
@@ -19,10 +20,7 @@ using namespace std;
 
 #include <sys/time.h>
 
-struct flags {
-	bool o1 = false;
-	bool o2 = false;
-} optimizations;
+Flags optimizations;
 
 float tdiff(struct timeval *start, struct timeval *end) {
   return (end->tv_sec-start->tv_sec) + 1e-6*(end->tv_usec-start->tv_usec);
@@ -521,7 +519,7 @@ float runTest(int argc, const char** argv) {
          png = true;
          continue;
       }
-		if (streq(argv[i], "oDefault")) {
+		if (streq(argv[i], "default")) {
 			continue;
 		}
 		if (streq(argv[i], "o1")) {
@@ -532,7 +530,7 @@ float runTest(int argc, const char** argv) {
 			optimizations.o2 = true;
 			continue;
 		}
-		if (streq(argv[i], "oAll")) {
+		if (streq(argv[i], "all")) {
 			optimizations.o1 = true;
 			optimizations.o2 = true;
 			continue;

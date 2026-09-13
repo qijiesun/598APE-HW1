@@ -49,7 +49,7 @@ void insertionSort(TimeAndShape *arr, int n) {
     }
 }
 
-void calcColor(unsigned char* toFill,Autonoma* c, Ray ray, unsigned int depth){
+void calcColor(unsigned char* toFill, Autonoma* c, Ray ray, unsigned int depth){
    ShapeNode* t = c->listStart;
 	double curTime = inf;
    Shape* curShape = NULL;
@@ -84,6 +84,16 @@ void calcColor(unsigned char* toFill,Autonoma* c, Ray ray, unsigned int depth){
 			curShape = times[0].shape;
 		}
 		free(times);
+	}
+
+	if (!c->triangles.empty() && c->boundingBox.intersects(ray)) {
+		for (size_t i = 0; i < c->triangles.size(); i++) {
+			double time = c->triangles[i]->getIntersection(ray);
+			if(time < curTime){
+				curTime = time;
+				curShape = c->triangles[i];
+			}
+		}
 	}
 
    if (curShape == NULL || curTime == inf) {

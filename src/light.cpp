@@ -120,6 +120,14 @@ void getLight(double* tColor, Autonoma* aut, Vector point, Vector norm, unsigned
         hit = shapeIter->data->getLightIntersection(Ray(point+ra*.01, ra), lightColor);
          shapeIter = shapeIter->next;
       }
+      if (!hit && !aut->triangles.empty() && aut->boundingBox.intersects(Ray(point+ra*.01, ra))) {
+        for (size_t i = 0; i < aut->triangles.size(); i++) {
+            hit = aut->triangles[i]->getLightIntersection(Ray(point+ra*.01, ra), lightColor);
+            if (hit) {
+                break;
+            }
+        }
+      }
       double perc = (norm.dot(ra)/(ra.mag()*norm.mag()));
       if(!hit){
       if(flip && perc<0) perc=-perc;

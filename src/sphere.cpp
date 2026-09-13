@@ -1,11 +1,21 @@
 #include "sphere.h"
+#include "flags.h"
 
 Sphere::Sphere(const Vector &c, Texture* t, double ya, double pi, double ro, double rad): Shape(c, t, ya, pi, ro){
-  textureX = textureY = 1.;
-  normalMap = NULL;
+	textureX = textureY = 1.;
+	normalMap = NULL;
    radius = rad;
+
+	Vector lower = center - Vector(radius, radius, radius);
+	Vector upper = center - Vector(radius, radius, radius);
+	boundingBox = AABB(lower, upper);
 }
 bool Sphere::getLightIntersection(Ray ray, double* fill){
+	if (optimizations.o2) {
+		if (!boundingBox.intersects(ray)) {
+			return false;
+		}
+	}
    const double A = ray.vector.mag2();
    const double B = 2*ray.vector.dot(ray.point-center);
    const double C = (ray.point-center).mag2()-radius*radius;
@@ -30,6 +40,11 @@ bool Sphere::getLightIntersection(Ray ray, double* fill){
    return false;
 }
 double Sphere::getIntersection(Ray ray){
+	if (optimizations.o2) {
+		if (!boundingBox.intersects(ray)) {
+			return inf;
+		}
+	}
    const double A = ray.vector.mag2();
    const double B = 2*ray.vector.dot(ray.point-center);
    const double C = (ray.point-center).mag2()-radius*radius;

@@ -1,6 +1,7 @@
 #ifndef __SPHERE_H__
 #define __SPHERE_H__
 #include "shape.h"
+#include "boundingbox.h"
 
 class Sphere : public Shape{
 public:
@@ -16,5 +17,6 @@ public:
   void setYaw(double a);
   void setPitch(double b);
   void setRoll(double c);
+  AABB boundingBox;
 };
 #endif

@@ -2,8 +2,10 @@
 #define __LIGHT_H__
 #include "vector.h"
 #include "camera.h"
+#include "boundingbox.h"
 #include "Textures/texture.h"
 #include "Textures/colortexture.h"
+#include <vector>
 
 class Light{
   public:
@@ -37,6 +39,8 @@ public:
    void removeShape(ShapeNode* s);
    void addLight(Light* s);
    void removeLight(LightNode* s);
+   AABB boundingBox;
+   std::vector<Shape*> triangles;
 };
 
 void getLight(double* toFill, Autonoma* aut, Vector point, Vector norm, unsigned char r);

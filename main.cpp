@@ -324,12 +324,43 @@ Autonoma* createInputs(const char* inputFile) {
             fclose(vectors);
             unsigned int* polys = getTriangles(triangles, num_polygons);
             fclose(triangles);
-            Vector offset(off_x, off_y, off_z); 
-            for(int i = 0; i<num_polygons; i++){
-               Triangle* shape = new Triangle(points[polys[3*i]] + offset, points[polys[3*i+1]] + offset, points[polys[3*i+2]] + offset, texture);
-               MAIN_DATA->addShape(shape);
-               shape->normalMap = normalMap;
-            }
+            Vector offset(off_x, off_y, off_z);
+				if (optimizations.o2) {
+					Vector lower = points[0] + offset;
+					Vector upper = points[0] + offset;
+
+					for (int i = 1; i < num_points; i++) {
+						Vector p = points[i] + offset;
+						if (p.x < lower.x) {
+							lower.x = p.x;
+						} else if (p.x > upper.x) {
+							upper.x = p.x;
+						}
+						if (p.y < lower.y) {
+							lower.y = p.y;
+						} else if (p.y > upper.y) {
+							upper.y = p.y;
+						}
+						if (p.z < lower.z) {
+							lower.z = p.z;
+						} else if (p.z > upper.z) {
+							upper.z = p.z;
+						}
+					}
+					MAIN_DATA->boundingBox = AABB(lower, upper);
+
+					for(int i = 0; i<num_polygons; i++){
+						Triangle* shape = new Triangle(points[polys[3*i]] + offset, points[polys[3*i+1]] + offset, points[polys[3*i+2]] + offset, texture);
+						MAIN_DATA->triangles.push_back(shape);
+						shape->normalMap = normalMap;
+					}
+				} else {
+					for(int i = 0; i<num_polygons; i++){
+						Triangle* shape = new Triangle(points[polys[3*i]] + offset, points[polys[3*i+1]] + offset, points[polys[3*i+2]] + offset, texture);
+						MAIN_DATA->addShape(shape);
+						shape->normalMap = normalMap;
+					}
+				}
          } else {
            printf("Unknown object type %s\n", object_type);
            exit(1);

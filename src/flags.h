@@ -4,6 +4,7 @@
 struct Flags {
 	bool o1 = false;
 	bool o2 = false;
+    bool o3 = false;
 };
 
 extern Flags optimizations;

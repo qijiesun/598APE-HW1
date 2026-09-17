@@ -18,6 +18,7 @@ public:
   void setYaw(double d);
   void setPitch(double d);
   void setRoll(double d);
+  Vector localScalers(const Vector &offset);
 };
 
 #endif

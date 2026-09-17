@@ -1,6 +1,7 @@
 #ifndef __SHAPE_H__
 #define __SHAPE_H__
 #include "light.h"
+#include "flags.h"
 
 class Shape{
   public:

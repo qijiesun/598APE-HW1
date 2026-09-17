@@ -5,7 +5,12 @@ Box::Box(const Vector &c, Texture* t, double ya, double pi, double ro, double tx
 
 double Box::getIntersection(Ray ray){
    double time = Plane::getIntersection(ray);
-   Vector dist = solveScalers(right, up, vect, ray.point+ray.vector*time-center);
+	Vector dist(0, 0, 0);
+	if (optimizations.o4) {
+		dist = localScalers(ray.point+ray.vector*time-center);
+	} else {
+		dist = solveScalers(right, up, vect, ray.point+ray.vector*time-center);
+	}
    if(time==inf) 
       return time;
    return ( ((dist.x>=0)?dist.x:-dist.x)>textureX/2 || ((dist.y>=0)?dist.y:-dist.y)>textureY/2 )?inf:time;
@@ -16,7 +21,12 @@ bool Box::getLightIntersection(Ray ray, double* fill){
    const double norm = vect.dot(ray.point)+d;
    const double r = -norm/t;
    if(r<=0. || r>=1.) return false;
-   Vector dist = solveScalers(right, up, vect, ray.point+ray.vector*r-center);
+	Vector dist(0, 0, 0);
+	if (optimizations.o4) {
+		dist = localScalers(ray.point+ray.vector*r-center);
+	} else {
+		dist = solveScalers(right, up, vect, ray.point+ray.vector*r-center);
+	}
    if( ((dist.x>=0)?dist.x:-dist.x)>textureX/2 || ((dist.y>=0)?dist.y:-dist.y)>textureY/2 ) return false;
 
    if(texture->opacity>1-1E-6) return true;   

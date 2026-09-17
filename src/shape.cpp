@@ -1,5 +1,4 @@
 #include "shape.h"
-#include "flags.h"
 
 Shape::Shape(const Vector &c, Texture* t, double ya, double pi, double ro): center(c), texture(t), yaw(ya), pitch(pi), roll(ro){
 };

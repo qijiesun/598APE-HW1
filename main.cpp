@@ -578,11 +578,21 @@ float runTest(int argc, const char** argv) {
 			optimizations.o4 = true;
 			continue;
 		}
+      if (streq(argv[i], "o5")) {
+			optimizations.o5 = true;
+			continue;
+		}
+      if (streq(argv[i], "o6")) {
+			optimizations.o6 = true;
+			continue;
+		}
 		if (streq(argv[i], "all")) {
 			optimizations.o1 = true;
 			optimizations.o2 = true;
          optimizations.o3 = true;
 			optimizations.o4 = true;
+			optimizations.o5 = true;
+			optimizations.o6 = true;
 			continue;
 		}
       if (streq(argv[i], "--help")) {
@@ -687,7 +697,7 @@ int main(int argc, const char** argv){
 				argv.push_back(optimization);
 				benchmark(it->first.c_str(), argv, runs);
 			} else {
-				printf("Unknown preset");
+				printf("Unknown preset\n");
 			}
 		}
 	} else {

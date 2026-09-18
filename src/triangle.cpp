@@ -58,8 +58,15 @@ double Triangle::getIntersection(Ray ray){
 }
 
 bool Triangle::getLightIntersection(Ray ray, double* fill){
-   const double t = ray.vector.dot(vect);
-   const double norm = vect.dot(ray.point)+d;
+   double t;
+   double norm;
+	if (optimizations.o5) {
+		t = ray.vector.x*vect.x + ray.vector.y*vect.y + ray.vector.z*vect.z;
+		norm = vect.x*ray.point.x + vect.y*ray.point.y + vect.z*ray.point.z + d;
+	} else {
+		t = ray.vector.dot(vect);
+   	norm = vect.dot(ray.point)+d;
+	}
    const double r = -norm/t;
    if(r<=0. || r>=1.) return false;
    Vector dist(0, 0, 0);

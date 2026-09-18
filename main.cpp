@@ -8,6 +8,7 @@
 #include "src/box.h"
 #include "src/disk.h"
 #include "src/triangle.h"
+#include "src/mesh.h"
 #include "src/Textures/imagetexture.h"
 #include "src/Textures/colortexture.h"
 #include<stdio.h>
@@ -334,7 +335,10 @@ Autonoma* createInputs(const char* inputFile) {
             unsigned int* polys = getTriangles(triangles, num_polygons);
             fclose(triangles);
             Vector offset(off_x, off_y, off_z);
-				if (optimizations.o2) {
+				if (optimizations.o6) {
+					Mesh* shape = new Mesh(points, polys, num_polygons, offset, texture, normalMap);
+					MAIN_DATA->addShape(shape);
+				} else if (optimizations.o2) {
 					Vector lower = points[0] + offset;
 					Vector upper = points[0] + offset;
 
@@ -620,7 +624,7 @@ float runTest(int argc, const char** argv) {
    Autonoma* MAIN_DATA = createInputs(inFile);
    
    int frame;
-   char command[200];
+   char command[400];
    
    struct timeval start, end;
    gettimeofday(&start, NULL);

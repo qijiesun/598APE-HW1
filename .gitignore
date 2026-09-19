@@ -7,3 +7,8 @@
 *.png
 *.avi
 *.mp4
+
+# Flamegraph
+perf.data
+out.perf-folded
+*.svg

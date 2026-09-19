@@ -37,7 +37,8 @@ unsigned char* getColor(unsigned char a, unsigned char b, unsigned char c){
      
 int W = 1000, H = 1000;
 
-unsigned char* DATA = (unsigned char*)malloc(W*H*3*sizeof(unsigned char));
+unsigned char* DATA = NULL;
+unsigned char* PREV = NULL;
 unsigned char get(int i, int j, int k){
    return DATA[3*(i+j*W)+k]; 
 }
@@ -55,14 +56,63 @@ void refresh(Autonoma* c){
 		#pragma omp parallel for schedule(guided)
 		for(int n = 0; n<H*W; ++n) 
 		{ 
+			if (optimizations.o7) {
+				if (((n % W) + (n / W)) & 1) {
+					continue;
+				}
+			}
 			Vector ra = c->camera.forward+((double)(n%W)/W-.5)*((c->camera.right))+(.5-(double)(n/W)/H)*((c->camera.up));
 			calcColor(&DATA[3*n], c, Ray(c->camera.focus, ra), 0);
 		}
 	} else {
 		for(int n = 0; n<H*W; ++n) 
 		{ 
+			if (optimizations.o7) {
+				if (((n % W) + (n / W)) & 1) {
+					continue;
+				}
+			}
 			Vector ra = c->camera.forward+((double)(n%W)/W-.5)*((c->camera.right))+(.5-(double)(n/W)/H)*((c->camera.up));
 			calcColor(&DATA[3*n], c, Ray(c->camera.focus, ra), 0);
+		}
+	}
+	if (optimizations.o7) {
+		for (int n = 0; n<H*W; ++n) {
+			int x = n % W;
+			int y = n / W;
+			if ((x + y) & 1) {
+				int r = 0;
+				int g = 0;
+				int b = 0;
+				int divisor = 0;
+				if (x > 0) {
+					r += DATA[3*(n-1)];
+					g += DATA[3*(n-1)+1];
+					b += DATA[3*(n-1)+2];
+					divisor++;
+				}
+				if (x < W - 1) {
+					r += DATA[3*(n+1)];
+					g += DATA[3*(n+1)+1];
+					b += DATA[3*(n+1)+2];
+					divisor++;
+				}
+				if (y > 0) {
+					r += DATA[3*(n-W)];
+					g += DATA[3*(n-W)+1];
+					b += DATA[3*(n-W)+2];
+					divisor++;
+				}
+				if (y < H - 1) {
+					r += DATA[3*(n+W)];
+					g += DATA[3*(n+W)+1];
+					b += DATA[3*(n+W)+2];
+					divisor++;
+				}
+				DATA[3*n] = (unsigned char)(r / divisor);
+				DATA[3*n+1] = (unsigned char)(g / divisor);
+				DATA[3*n+2] = (unsigned char)(b / divisor);
+			}
 		}
 	}
 }
@@ -590,6 +640,10 @@ float runTest(int argc, const char** argv) {
 			optimizations.o6 = true;
 			continue;
 		}
+		if (streq(argv[i], "o7")) {
+			optimizations.o7 = true;
+			continue;
+		}
 		if (streq(argv[i], "all")) {
 			optimizations.o1 = true;
 			optimizations.o2 = true;
@@ -597,6 +651,7 @@ float runTest(int argc, const char** argv) {
 			optimizations.o4 = true;
 			optimizations.o5 = true;
 			optimizations.o6 = true;
+			optimizations.o7 = true;
 			continue;
 		}
       if (streq(argv[i], "--help")) {
@@ -619,7 +674,6 @@ float runTest(int argc, const char** argv) {
       }
    }
 
-	free(DATA);
 	DATA = (unsigned char*)malloc(W*H*3*sizeof(unsigned char));
    Autonoma* MAIN_DATA = createInputs(inFile);
    
@@ -662,6 +716,8 @@ float runTest(int argc, const char** argv) {
 		}
    }
 	delete MAIN_DATA;
+	free(DATA);
+	DATA = NULL;
    return elapsed;
 }
 

@@ -7,7 +7,7 @@ Sphere::Sphere(const Vector &c, Texture* t, double ya, double pi, double ro, dou
    radius = rad;
 
 	Vector lower = center - Vector(radius, radius, radius);
-	Vector upper = center - Vector(radius, radius, radius);
+	Vector upper = center + Vector(radius, radius, radius);
 	boundingBox = AABB(lower, upper);
 }
 bool Sphere::getLightIntersection(Ray ray, double* fill){
